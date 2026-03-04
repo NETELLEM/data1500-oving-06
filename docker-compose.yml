@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: avansert-sql
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: hobbyhuset
+    ports:
+      - "5452:5432"
+    volumes:
+      - postgres_data_avansert_sql:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./test-scripts:/test-scripts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d hobbyhuset"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_avansert_sql:
+    driver: local
+
+networks:
+  data1500-avansert-sql-network:
+    driver: bridge
