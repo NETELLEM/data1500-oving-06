@@ -92,18 +92,51 @@
     ORDER BY KPP.AntallKunder DESC;
     ```
     **Forklaring:**
-    *   *... Skriv din forklaring her ...*
+    *   Først teller vi opp hvor mange kunder som bor på hvert postnummer. Deretter henter vi poststednavnet, filtrerer bort steder med 5 eller færre kunder, og sorterer slik at stedene med flest kunder kommer øverst.
 
 ### Del 2: Lag SQL-spørringer
 
 1.  **Ansatte med over gjennomsnittslønn:**
     ```sql
-    -- Skriv din SQL-spørring her
+    WITH Gjennomsnittlønn AS (
+    SELECT AVG(Årslønn) AS Gjennomsnittslønn
+    FROM Ansatt
+    )
+    
+    SELECT
+        A.Fornavn,
+        A.Etternavn,
+        A.Årslønn,
+        G.Gjennomsnittslønn,
+        A.Årslønn - G.Gjennomsnittslønn AS KrOver
+    FROM Ansatt A
+    JOIN GjennomsnittlønnCTE G
+        ON A.Årslønn > G.Gjennomsnittslønn
+    ORDER BY A.Årslønn DESC;
     ```
 
 2.  **Kategorier med flest varer:**
     ```sql
-    -- Skriv din SQL-spørring her
+    WITH AntallVarerPerKategori AS (
+    SELECT
+        KatNr,
+        COUNT(*) AS AntallVarer
+    FROM Vare
+    GROUP BY KatNr
+    ),
+    
+    MaksCTE AS (
+        SELECT MAX(AntallVarer) AS MaksAntall
+        FROM AntallVarerPerKategori
+    )
+    
+    SELECT
+        K.Navn AS Kategori,
+        AVK.AntallVarer
+    FROM Kategori K
+    JOIN AntallVarerPerKategori AVK ON K.KatNr = AVK.KatNr
+    JOIN MaksCTE M ON AVK.AntallVarer = M.MaksAntall
+    ORDER BY AVK.AntallVarer DESC;
     ```
 
 3.  **Rekursiv CTE - Hierarki av ansatte:**
