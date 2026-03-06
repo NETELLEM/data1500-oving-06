@@ -13,8 +13,8 @@
         RANK() OVER (ORDER BY Årslønn DESC) AS Lønnsrangering
     FROM Ansatt;
     ```
-    **Forklaring:**
-    *   *... Skriv din forklaring her ...*
+    **Forklaring:** 
+    *  Spørringen henter Fornavn, Etternavn og Årslønn fra Ansatt-tabellen, og legger til en ny kolonne som rangerer ansatte etter lønn — høyest lønn får rang 1 som Lønnsrangering
 
 2.  **Spørring:**
     ```sql
@@ -27,23 +27,49 @@
     JOIN Kategori K ON V.KatNr = K.KatNr;
     ```
     **Forklaring:**
-    *   *... Skriv din forklaring her ...*
+    *   Spørringen henter Betegnelse, Kategori-navn og Pris ved å joine Vare og Kategori. For hver vare beregnes også gjennomsnittsprisen for alle varer i samme kategori ved hjelp av AVG() OVER (PARTITION BY K.Navn) — uten å redusere antall rader.
 
 ### Del 2: Lag SQL-spørringer
 
 1.  **Rangering av varer per kategori:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT
+    V.Betegnelse,
+    K.Navn AS Kategori,
+    V.Pris,
+    RANK() OVER (
+        PARTITION BY K.Navn      
+        ORDER BY V.Pris DESC     
+    ) AS RangIPKategori
+    FROM Vare V
+    JOIN Kategori K ON V.KatNr = K.KatNr;
     ```
 
 2.  **Løpende sum av ordrebeløp:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT
+    OrdreNr,
+    Ordredato,
+    Beløp,
+    SUM(Beløp) OVER (
+        ORDER BY OrdreNr         -- Løp gjennom i rekkefølge
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS LøpendeTotalSum
+    FROM Ordre;
     ```
 
 3.  **Prosentandel av kategoriprisen:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT
+    V.Betegnelse,
+    K.Navn AS Kategori,
+    V.Pris,
+    ROUND(
+        V.Pris * 100.0 / SUM(V.Pris) OVER (PARTITION BY K.Navn),
+        2
+    ) AS ProsentAvKategori
+    FROM Vare V
+    JOIN Kategori K ON V.KatNr = K.KatNr;
     ```
 
 ---
