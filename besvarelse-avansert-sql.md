@@ -161,7 +161,7 @@
     );
     ```
     **Forklaring:**
-    *   *... Skriv din forklaring her ...*
+    *   Den indre spørringen refererer til `V.KatNr` fra den **ytre** spørringen. Det betyr at den indre spørringen **kjøres på nytt for hver eneste rad** i den ytre.
 
 2.  **Spørring (Subquery i `FROM`):**
     ```sql
@@ -175,21 +175,43 @@
     WHERE Gjennomsnittspris > 100;
     ```
     **Forklaring:**
-    *   *... Skriv din forklaring her ...*
+    *   Den indre spørringen lager en midlertidig tabell som den ytre spørringen bruker som om den var en vanlig tabell. Kalles også en inline view.
 
 ### Del 2: Lag SQL-spørringer
 
 1.  **Kunder som har bestilt en spesifikk vare:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT K.Fornavn, K.Etternavn, K.Epost
+    FROM Kunde K
+    WHERE K.KundeNr IN (
+        SELECT O.KundeNr          -- Finn alle KundeNr som har bestilt...
+        FROM Ordre O
+        JOIN OrdreDetalj OD ON O.OrdreNr = OD.OrdreNr
+        JOIN Vare V ON OD.VareNr = V.VareNr
+        WHERE V.Betegnelse = 'Sykkel'  -- ...denne spesifikke varen
+    );
     ```
 
 2.  **`EXISTS` - Kategorier med dyre varer:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT K.Navn AS Kategori
+    FROM Kategori K
+    WHERE EXISTS (
+        SELECT 1                   -- Tallet spiller ingen rolle, bare "finnes det?"
+        FROM Vare V
+        WHERE V.KatNr = K.KatNr   -- Korrelert: sjekker denne kategorien
+        AND V.Pris > 500
+    );
     ```
 
 3.  **Varer dyrere enn gjennomsnittet:**
     ```sql
-    -- Skriv din SQL-spørring her
+    SELECT
+    V.Betegnelse,
+    V.Pris,
+    ROUND((SELECT AVG(Pris) FROM Vare), 2) AS TotaltGjennomsnitt,
+    ROUND(V.Pris - (SELECT AVG(Pris) FROM Vare), 2) AS KrOverSnitt
+    FROM Vare V
+    WHERE V.Pris > (SELECT AVG(Pris) FROM Vare)
+    ORDER BY V.Pris DESC;
     ```
